@@ -55,40 +55,45 @@ class Link():
 
     # Depth First Search
     def depthFirstSearch(self):
-        start = self.gameWorld.getLinkLocation() # start position
-        node = Node(start)# x, y of Link
-        allGold = self.gameWorld.getGoldLocation() # store all locations of gold
-
-        stack = [node] # stores x and y of Link, path taken
-        explored = []
+        start = self.gameWorld.getLinkLocation()  # Start position
+        node = Node(start)  # x, y of Link
+        allGold = set((gold.x, gold.y) for gold in self.gameWorld.getGoldLocation())  # Store all gold locations
+        
+        stack = [node]  # Stack for DFS
+        explored = set()
+        gold_collected = set()  # Track collected gold
+        final_path = []  # Complete path to collect all gold
         
         while stack:
-            node = stack.pop() # get last item of stack
+            node = stack.pop()
             
-            # check if node was visited
-            if node in explored:
+            # Skip if already visited
+            if (node.location.x, node.location.y) in explored:
                 continue
             
-            explored.append(node) # add node to explored
+            explored.add((node.location.x, node.location.y))
+            final_path.append(node)  # Add node to final path
+            
+            # Check if current node is gold
+            if (node.location.x, node.location.y) in allGold:
+                gold_collected.add((node.location.x, node.location.y))
+                print(f"Gold found at {node.location.x}, {node.location.y}")
+                
+                # If all gold is collected, return path
+                if gold_collected == allGold:
+                    return self.recoverPlan(node)
             
             # Expand possible moves from current location
             for action in self.getActions(node.location):
                 child = self.createChildNode(node, action)
-
-                # Check if the child node is gold before pushing it to stack
-                for gold in allGold:
-                    if (child.location.x, child.location.y) == (gold.x, gold.y):
-                        print(f"Gold found at {gold.x}, {gold.y}")
-                        return self.recoverPlan(child)  # Recover path from goal to start
-
-                # If child is not gold, push it to stack for further exploration
-                if child not in explored and child not in stack:
+                
+                if (child.location.x, child.location.y) not in explored:
                     stack.append(child)
-                           
         
-        print("Failed to find a path")
+        print("Failed to find all gold")
         return []
-    
+
+
     # Functions that enables to get all possible directions from a location
     # Checks if a location is dangerous after applying directions
     def getActions(self, location):
