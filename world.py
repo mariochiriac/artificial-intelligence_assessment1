@@ -100,6 +100,20 @@ class World():
     # Does Link see the glitter?
     def linkGlitter(self):
         return isGlitter(lLoc)
+    
+    # Does the location have a Wumpus or Pit?
+    def isDangerous(self, x, y):
+        # Checks for Wumpus
+        for w in self.wLoc:
+            if (x, y) == (w.x, w.y):
+                return True
+
+        # Checks pits
+        for p in self.pLoc:
+            if (x, y) == (p.x, p.y):
+                return True
+
+        return False  # Safe to move
  
     #
     # Methods
