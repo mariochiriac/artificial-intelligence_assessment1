@@ -12,6 +12,8 @@
 # This borrows from:
 # https://www.geeksforgeeks.org/command-line-arguments-in-python/
 
+from tkinter import CURRENT
+import heapq
 import puzzle
 import getopt
 import random
@@ -25,7 +27,7 @@ import sys
 def displayHelp():
     print("wumpus.py accepts the following arguments:")
     print("-h : generates this message")
-    print("-g : runs the game version of the wumpus world")
+    print("-g <number> : runs the game version of the wumpus world. <number> specifies algorithm type:\n\t1 - Depth First Search\n\t2 - Breadth First Search")
     print("-p : runs the puzzle version of the wumpus world")
     print("-d : do not use the graphics (ie run headless)")
     print("-n <number> : runs either the -p or the -g version <number> of times. Note that <number> should be an integer")
@@ -49,7 +51,8 @@ def main():
     # We support a help option, running either the game version or the
     # puzzle version, running with no display, and possiblly running n
     # iterations.
-    options = "hgpdn:"
+    # have added posibility of choosing algorithm
+    options = "hg:pdn:"
 
     # Long options
     long_options = ["Help", "Game", "Puzzle", "Headless", "Number"]
@@ -66,6 +69,15 @@ def main():
             
             elif currentArgument in ("-g", "--Game"):
                 wType = "game"
+                
+                if currentValue:
+                    try:
+                        algorithm_value = int(currentValue)
+
+                        config.algorithmType = algorithm_value
+                        print(f"Algorithm Type: {config.algorithmType}")
+                    except ValueError:
+                        print("Wrong data type entered for -g value. Default algorithm will be used.")
             
             elif currentArgument in ("-p", "--Puzzle"):
                 wType = "puzzle"

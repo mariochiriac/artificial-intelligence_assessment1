@@ -3,11 +3,11 @@
 import utils
         
 class Node:
-    def __init__(self, location, parent=None, action=None, depth=0):
+    def __init__(self, location, parent=None, action=None, cost=0):
         self.location = location  # Pose (x, y)
         self.parent = parent      # Parent node (for path recovery)
         self.action = action      # Action taken (NORTH, SOUTH, EAST, WEST)
-        self.depth = depth        # Depth in search tree
+        self.cost = cost        # Depth in search tree
 
     def isGoal(self, gold):
         return (self.location.x, self.location.y) == (gold.x, gold.y)

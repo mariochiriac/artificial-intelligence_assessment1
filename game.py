@@ -24,7 +24,7 @@ def main():
     # How we set the game up. Create a world, then connect player and
     # display to it.
     gameWorld = World()
-    player = Link(gameWorld)
+    player = Link(gameWorld, config.algorithmType)
     display = Dungeon(gameWorld)
 
     # Uncomment this for a printout of world state at the start

@@ -18,6 +18,8 @@ numberOfWumpus = 2
 numberOfPits = 3
 numberOfGold = 2
 
+algorithmType = 1
+
 # Do we show graphics or not?
 headless = False
 
