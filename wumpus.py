@@ -28,7 +28,7 @@ def displayHelp():
     print("wumpus.py accepts the following arguments:")
     print("-h : generates this message")
     print("-g <number> : runs the game version of the wumpus world. <number> specifies algorithm type:\n\t1 - Depth First Search\n\t2 - Breadth First Search")
-    print("-p : runs the puzzle version of the wumpus world")
+    print("-p <number> : runs the puzzle version of the wumpus world. <number> specifies algorithm type:\n\t1 - Depth First Search\n\t2 - A* Search")
     print("-d : do not use the graphics (ie run headless)")
     print("-n <number> : runs either the -p or the -g version <number> of times. Note that <number> should be an integer")
 
@@ -52,8 +52,8 @@ def main():
     # puzzle version, running with no display, and possiblly running n
     # iterations.
     # have added posibility of choosing algorithm
-    options = "hg:pdn:"
-
+    options = "hg:p:dn:"
+    algorithm_type = 1
     # Long options
     long_options = ["Help", "Game", "Puzzle", "Headless", "Number"]
 
@@ -72,15 +72,22 @@ def main():
                 
                 if currentValue:
                     try:
-                        algorithm_value = int(currentValue)
+                        algorithm_type = int(currentValue)
 
-                        config.algorithmType = algorithm_value
-                        print(f"Algorithm Type: {config.algorithmType}")
+                        print(f"Algorithm Chosen: {algorithm_type}")
                     except ValueError:
                         print("Wrong data type entered for -g value. Default algorithm will be used.")
             
             elif currentArgument in ("-p", "--Puzzle"):
                 wType = "puzzle"
+
+                if currentValue:
+                    try:
+                        algorithm_type = int(currentValue)
+
+                        print(f"Algorithm Chosen: {algorithm_type}")
+                    except ValueError:
+                        print("Wrong data type entered for -g value. Default algorithm will be used.")
                 
             elif currentArgument in ("-d", "--Headless"):
                 config.headless = True
@@ -96,10 +103,11 @@ def main():
     if wType != "none":
         if wType == "game":
             for i in range(count):
-                game.main()
+                print(f"Algorithm chosen: {algorithm_type}")
+                game.main(algorithm_type)
         elif wType == "puzzle":
             for i in range(count):
-                puzzle.main()            
+                puzzle.main(algorithm_type)            
         
 if __name__ == "__main__":
     main()

@@ -23,6 +23,11 @@ class Directions(Enum):
     EAST  = 3
     WEST  = 4
 
+    def __lt__(self, other):
+        if isinstance(other, Directions):
+            return self.value < other.value
+        return NotImplemented
+
 # representation of game state
 class State(Enum):
     PLAY = 0

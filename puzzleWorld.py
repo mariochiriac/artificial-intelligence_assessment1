@@ -10,6 +10,9 @@ import random
 import config
 import utils
 import copy
+import search
+from search import Search
+from node import Node
 from world import World
 from utils import Pose
 from utils import Directions
@@ -18,39 +21,69 @@ from utils import State
 class PuzzleWorld(World):
 
     def __init__(self):
-
-        # Import boundaries of the world. because we index from 0,
-        # these are one less than the number of rows and columns.
+        # 
         self.maxX = config.worldLength - 1
         self.maxY = config.worldBreadth - 1
-
-        # Keep a list of locations that have been used.
-        self.locationList = []
-
-        # Wumpus
         self.wLoc = []
+        self.locationList = []
         for i in range(config.numberOfWumpus):
             newLoc = utils.pickUniquePose(self.maxX, self.maxY, self.locationList)
             self.wLoc.append(newLoc)
             self.locationList.append(newLoc)
-
-        # Link
         newLoc = utils.pickUniquePose(self.maxX, self.maxY, self.locationList)
         self.lLoc = newLoc
         self.locationList.append(newLoc)
-
-        # Other elements that we don't use
         self.pLoc = []
         self.gLoc = []
-        
-        # Game state
         self.status = utils.State.PLAY
-
-        # What moves are possible.
         self.moves = [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]
+        self.plan = []
 
+        
         # A plan
-        self.plan = [[Directions.NORTH, 0, 0], [0, Directions.NORTH, 0], [0, 0, Directions.NORTH]]
+        # self.plan = [[Directions.EAST, 0, 0], [0, Directions.NORTH, 0], [0, 0, Directions.NORTH]]
+    
+    def buildPlan(self, for_char, goal, algorithm_type):
+        """Build a plan using DFS (1) or A* (2)."""
+        if for_char == 0:
+            start = self.lLoc
+            goal_loc = goal.lLoc
+            format_move = lambda action: [action, 0, 0]  # Link move
+        else:
+            start = self.wLoc[for_char - 1]
+            goal_loc = goal.wLoc[for_char - 1]
+            format_move = lambda action: [0, action, 0] if for_char == 1 else [0, 0, action]  # Wumpus move
+
+        if algorithm_type == 1:
+            self.plan = Search.dfs(start, goal_loc, self.maxX, self.maxY, format_move)
+        else:  # algorithm_type == 2
+            self.plan = Search.astar(start, goal_loc, self.maxX, self.maxY, format_move)
+        if not self.plan:
+            print(f"No solution found for character {for_char}")
+         
+    def buildPlanDFS(self):
+        start = self.gameWorld.getLinkLocation()  # Start position
+        node = Node(start)  # x, y of Link
+        
+        stack = [node]  # Stack for DFS
+        explored = set()
+        
+        while stack:
+            node = stack.pop()
+            
+            # Skip if already visited
+            if (node.location.x, node.location.y) in explored:
+                continue
+            
+            explored.add((node.location.x, node.location.y))
+            final_path.append(node)  # Add node to final path
+            
+            # Expand possible moves from current location
+            for action in self.getActions(node.location):
+                child = self.createChildNode(node, action)
+                
+                if (child.location.x, child.location.y) not in explored:
+                    stack.append(child)
 
     #
     # Methods
@@ -58,12 +91,13 @@ class PuzzleWorld(World):
     # These are the functions that are used to update and report on
     # puzzle information.
     def isSolved(self, goal):
-        if utils.sameAs(self, goal):
-            self.status = utils.State.WON 
-            print("Puzzle Over!")
+        if utils.sameLink(self, goal) and utils.sameWumpus(self, goal):
+            self.status = utils.State.WON
+            print("Puzzle Over! Wumpus and Link match.")
             return True
         else:
             return False
+
 
     # A single move is to shift Link or one Wumpus in one direction.
     #
@@ -80,6 +114,7 @@ class PuzzleWorld(World):
         else:
             print("Nothing to do!")
 
+
     # A move is a list of the directions that [Link, Wumpus1, Wumpus2,
     # ...] move in.  takeStep decodes these and makes the relevant
     # change to the state. Basically it looks for the first list
@@ -88,6 +123,7 @@ class PuzzleWorld(World):
     # effect.
     def takeStep(self, move):
         # Move Link
+        print(f"Move 0: {move[0]}, move 1: {move[1]}")
         if move[0] != 0:
             print("Moving Link")
             direction = move[0]

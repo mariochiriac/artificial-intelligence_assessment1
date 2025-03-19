@@ -10,15 +10,13 @@
 myId = 27995455
 
 # Dimensions in terms of the numbers of rows and columns
-worldLength = 9
-worldBreadth = 9
+worldLength = 10
+worldBreadth = 10
 
 # Features
 numberOfWumpus = 2
 numberOfPits = 3
 numberOfGold = 2
-
-algorithmType = 1
 
 # Do we show graphics or not?
 headless = False

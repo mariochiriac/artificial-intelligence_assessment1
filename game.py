@@ -20,11 +20,11 @@ import time
 
 # We explicitly define the main function to allow this to both be run
 # from the command line on its own, or invoked (from wumpus.py)
-def main():
+def main(algorithmType):
     # How we set the game up. Create a world, then connect player and
     # display to it.
     gameWorld = World()
-    player = Link(gameWorld, config.algorithmType)
+    player = Link(gameWorld, algorithmType)
     display = Dungeon(gameWorld)
 
     # Uncomment this for a printout of world state at the start

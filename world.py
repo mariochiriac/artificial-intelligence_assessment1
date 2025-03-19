@@ -91,15 +91,15 @@ class World():
 
     # Does Link feel the wind?
     def linkWindy(self):
-        return isWindy(lLoc)
+        return self.isWindy(self.lLoc)
 
     # Does Link smell the Wumpus?
     def linkSmelly(self):
-        return isSmelly(lLoc)
+        return self.isSmelly(self.lLoc)
 
     # Does Link see the glitter?
     def linkGlitter(self):
-        return isGlitter(lLoc)
+        return self.isGlitter(self.lLoc)
     
     # Does the location have a Wumpus or Pit?
     def isDangerous(self, x, y):
@@ -288,24 +288,23 @@ class World():
     #
     # A location is smelly if it is next to the Wumpus
     def isSmelly(self, location):
-        if isAjacent(self.Wloc, location):
-            return True
-        else:
-            return False
+        for w in self.wLoc:
+            # Check if location is ON or NEXT TO a Wumpus
+            if (w.x == location.x and w.y == location.y) or self.isAdjacent(self.wLoc, location):
+                return True
+        return False
 
     # Is the given location windy? 
     def isWindy(self, location):
-        if isAjacent(self.ploc, location):
-            return True
-        else:
-            return False
+        for p in self.pLoc:
+            if (p.x == location.x and p.y == location.y) or self.isAdjacent(self.pLoc, location):
+                return True
+            # Check if location is ON or NEXT TO a Pit
+        return False
 
      # Does the given location glitter? 
     def isGlitter(self, location):
-        if isAjacent(self.gloc, location):
-            return True
-        else:
-            return False
+        return self.isAdjacent(self.gLoc, location)
                 
     # Is the location loc next to any of the locations in locList.
     #
@@ -313,19 +312,14 @@ class World():
     # x coordinate and have a y coordinate that differs by 1, or in
     # the same y coordinate and have an x coordinate that differs by
     # one.
-    def isAjacent(locList, loc):
+    def isAdjacent(self, locList, loc):
         for aloc in locList:
             # Ajacency holds if it holds for any location in locList.
             if aloc.x == loc.x:
                 if aloc.y == loc.y + 1 or aloc.y == loc.y - 1:
                     return True
-                else:
-                    return False
             elif aloc.y == loc.y:
                 if aloc.x == loc.x + 1 or aloc.x == loc.x - 1:
                     return True
-                else:
-                    return False
-            else:
-                return False
+        return False
             
