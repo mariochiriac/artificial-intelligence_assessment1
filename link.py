@@ -132,7 +132,7 @@ class Link:
                 gold_locs = self.gameWorld.getGoldLocation()
                 if gold_locs:
                     nearest_gold = min(gold_locs, key=lambda g: abs(g.x - new_loc.x) + abs(g.y - new_loc.y))
-                    dist = abs(nearest_gold.x - new_loc.x) + abs(nearest_gold.y - new_loc.y)
+                    dist = abs(nearest_gold.x - new_loc.x) + abs(nearest_gold.y - new_loc.y) # Heuristic (Manhattan Distance towards Gold)
                     turn_penalty = 0 if last_move == action else 1
                     score = dist + turn_penalty
                     safe_moves.append((score, action))
