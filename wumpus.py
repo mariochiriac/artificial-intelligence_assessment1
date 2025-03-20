@@ -1,113 +1,73 @@
 # wumpus.py
-#
-# A script to invoke both the game and the puzzle versions of the
-# wumpus world.
-#
-# To find out how to use it, run:
-# python wumpus.py -h
-
+# Invokes game and puzzle versions of Wumpus World.
 # Written by: Simon Parsons
 # Last Modified: 06/01/24
 
-# This borrows from:
-# https://www.geeksforgeeks.org/command-line-arguments-in-python/
-
-from tkinter import CURRENT
-import heapq
-import puzzle
 import getopt
 import random
 import config
 import game
+import puzzle
 import sys
 
-#
-# Print help message.
-#
 def displayHelp():
     print("wumpus.py accepts the following arguments:")
     print("-h : generates this message")
-    print("-g <number> : runs the game version of the wumpus world. <number> specifies algorithm type:\n\t1 - Depth First Search\n\t2 - Breadth First Search")
-    print("-p <number> : runs the puzzle version of the wumpus world. <number> specifies algorithm type:\n\t1 - Depth First Search\n\t2 - A* Search")
-    print("-d : do not use the graphics (ie run headless)")
-    print("-n <number> : runs either the -p or the -g version <number> of times. Note that <number> should be an integer")
+    print("-g <number> : runs the game version. <number> specifies algorithm:")
+    print("\t1 - Depth First Search\n\t2 - Breadth First Search\n\t3 - Uniform Cost Search\n\t4 - Greedy Search")
+    print("-p <number> : runs the puzzle version. <number> specifies algorithm:")
+    print("\t1 - Depth First Search\n\t2 - A* Search")
+    print("-d : run headless (no graphics)")
+    print("-n <number> : runs -p or -g version <number> times (integer)")
 
 def main():
-    # Seed the random number generator.
-    #
-    # Your code will be tested with the random seed fixed to your student
-    # ID and some other fixed values. But you probably want to comment
-    # this out during development so you test under a variety of
-    # conditions
     random.seed(config.myId)
-    
-    # Set global flags to help parse the command line arguments
     wType = "none"
     count = 1
-    
-    # Drop the filename from the list of command line arguments
     argList = sys.argv[1:]
-
-    # We support a help option, running either the game version or the
-    # puzzle version, running with no display, and possiblly running n
-    # iterations.
-    # have added posibility of choosing algorithm
     options = "hg:p:dn:"
-    algorithm_type = 1
-    # Long options
     long_options = ["Help", "Game", "Puzzle", "Headless", "Number"]
+    algorithm_type = 1
 
     try:
-        # Parsing argument
         arguments, values = getopt.getopt(argList, options, long_options)
-    
-        # checking each argument
         for currentArgument, currentValue in arguments:
             if currentArgument in ("-h", "--Help"):
                 displayHelp()
                 wType = "none"
-            
             elif currentArgument in ("-g", "--Game"):
                 wType = "game"
-                
                 if currentValue:
                     try:
                         algorithm_type = int(currentValue)
-
-                        print(f"Algorithm Chosen: {algorithm_type}")
+                        print(f"Game Algorithm Chosen: {algorithm_type}")
                     except ValueError:
-                        print("Wrong data type entered for -g value. Default algorithm will be used.")
-            
+                        print("Invalid -g value. Defaulting to 1.")
             elif currentArgument in ("-p", "--Puzzle"):
                 wType = "puzzle"
-
                 if currentValue:
                     try:
                         algorithm_type = int(currentValue)
-
-                        print(f"Algorithm Chosen: {algorithm_type}")
+                        print(f"Puzzle Algorithm Chosen: {algorithm_type}")
                     except ValueError:
-                        print("Wrong data type entered for -g value. Default algorithm will be used.")
-                
+                        print("Invalid -p value. Defaulting to 1.")
             elif currentArgument in ("-d", "--Headless"):
                 config.headless = True
-
             elif currentArgument in ("-n", "--Number"):
                 count = int(currentValue)
-                print(currentValue)
-                
-    except getopt.error as err:
-        # output error, and return with an error code
-        print (str(err))
-    
+
+    except getopt.GetoptError as err:
+        print(str(err))
+
     if wType != "none":
         if wType == "game":
             for i in range(count):
-                print(f"Algorithm chosen: {algorithm_type}")
+                print(f"Running game with algorithm {algorithm_type}")
                 game.main(algorithm_type)
         elif wType == "puzzle":
             for i in range(count):
-                puzzle.main(algorithm_type)            
-        
+                print(f"Running puzzle with algorithm {algorithm_type}")
+                puzzle.main(algorithm_type)
+
 if __name__ == "__main__":
     main()

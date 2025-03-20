@@ -1,121 +1,224 @@
 # search.py
-#
-# Generic search algorithms for Wumpus World (puzzle and gold modes).
-#
-# Written for modularity and reuse.
-# Last Modified: March 18, 2025
-
-from utils import Directions, Pose
-from node import Node
-from heapq import heappush, heappop
+import heapq
+from utils import Pose, Directions
+from node import Node  # Assuming Node is defined in node.py
 
 class Search:
+    # Static methods for puzzle version (simple pathfinding)
     @staticmethod
-    def get_actions(state, max_x, max_y):
-        """Return valid actions from a position."""
+    def dfs_path(start, goal, maxX, maxY):
+        """DFS for puzzle: Find path from start to goal on a grid."""
+        stack = [(start, [])]  # (position (x, y), path)
+        visited = set()
+        while stack:
+            (x, y), path = stack.pop()
+            if (x, y) == goal:
+                return path
+            if (x, y) not in visited:
+                visited.add((x, y))
+                for dx, dy, action in [(0, 1, Directions.NORTH), (0, -1, Directions.SOUTH),
+                                       (1, 0, Directions.EAST), (-1, 0, Directions.WEST)]:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx <= maxX and 0 <= ny <= maxY:
+                        stack.append(((nx, ny), path + [action]))
+        return None
+
+    @staticmethod
+    def astar_path(start, goal, maxX, maxY):
+        """A* for puzzle: Find optimal path from start to goal."""
+        def heuristic(a, b):
+            return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+        pq = [(0 + heuristic(start, goal), 0, start, [])]  # (f, g, position, path)
+        visited = {}
+        while pq:
+            f, g, (x, y), path = heapq.heappop(pq)
+            if (x, y) == goal:
+                return path
+            if (x, y) in visited and visited[(x, y)] <= g:
+                continue
+            visited[(x, y)] = g
+            for dx, dy, action in [(0, 1, Directions.NORTH), (0, -1, Directions.SOUTH),
+                                   (1, 0, Directions.EAST), (-1, 0, Directions.WEST)]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx <= maxX and 0 <= ny <= maxY:
+                    ng = g + 1
+                    nf = ng + heuristic((nx, ny), goal)
+                    heapq.heappush(pq, (nf, ng, (nx, ny), path + [action]))
+        return None
+
+    # Instance methods for game version (gold collection and hazards)
+    def __init__(self, gameWorld):
+        self.gameWorld = gameWorld
+        self.moves = [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]
+
+    def getActions(self, location):
+        """Get valid actions from a location, avoiding hazards."""
         actions = []
-        if state.y < max_y:
+        if (location.y < self.gameWorld.maxY and
+            not self.gameWorld.isDangerous(location.x, location.y + 1)):
             actions.append(Directions.NORTH)
-        if state.y > 0:
+        if location.y > 0 and not self.gameWorld.isDangerous(location.x, location.y - 1):
             actions.append(Directions.SOUTH)
-        if state.x < max_x:
+        if (location.x < self.gameWorld.maxX and
+            not self.gameWorld.isDangerous(location.x + 1, location.y)):
             actions.append(Directions.EAST)
-        if state.x > 0:
+        if location.x > 0 and not self.gameWorld.isDangerous(location.x - 1, location.y):
             actions.append(Directions.WEST)
         return actions
 
-    @staticmethod
-    def apply_action(state, action):
-        """Apply an action to a state, returning a new Pose."""
-        new_state = Pose()
-        new_state.x = state.x
-        new_state.y = state.y
-        if action == Directions.NORTH:
-            new_state.y += 1
-        elif action == Directions.SOUTH:
-            new_state.y -= 1
-        elif action == Directions.EAST:
-            new_state.x += 1
+    def createChildNode(self, parent, action):
+        """Create a child node based on an action."""
+        new_depth = parent.cost + 1
+        new_location = Pose()
+        new_location.x = parent.location.x
+        new_location.y = parent.location.y
+        if action == Directions.EAST:
+            new_location.x += 1
         elif action == Directions.WEST:
-            new_state.x -= 1
-        return new_state
+            new_location.x -= 1
+        elif action == Directions.NORTH:
+            new_location.y += 1
+        elif action == Directions.SOUTH:
+            new_location.y -= 1
+        return Node(new_location, parent, action, new_depth, gold_collected=parent.gold_collected.copy())
 
-    @staticmethod
-    def heuristic(state, goal):
-        """Manhattan distance heuristic for A*."""
-        return abs(state.x - goal.x) + abs(state.y - goal.y)
+    def recoverPlan(self, node):
+        """Recover the path from a goal node."""
+        plan = []
+        current = node
+        while current.parent:
+            plan.append(current.action)
+            current = current.parent
+        plan.reverse()
+        return plan
 
-    @staticmethod
-    def dfs(start, goal, max_x, max_y, format_move):
-        """DFS to find a path from start to goal."""
-        start_node = Node(start)
-        stack = [start_node]
+    def dfs_game(self, start, allGold):
+        """DFS for game: Find path to collect all gold."""
+        node = Node(start, gold_collected=set())
+        stack = [node]
         explored = set()
-
         while stack:
             node = stack.pop()
-            if (node.location.x, node.location.y) in explored:
+            current_pos = (node.location.x, node.location.y)
+            if current_pos in explored:
                 continue
-
-            explored.add((node.location.x, node.location.y))
-
-            if node.location.x == goal.x and node.location.y == goal.y:
-                plan = []
-                while node.parent is not None:
-                    plan.append(format_move(node.action))
-                    node = node.parent
-                plan.reverse()
-                return plan
-
-            for action in Search.get_actions(node.location, max_x, max_y):
-                child_loc = Search.apply_action(node.location, action)
-                child = Node(child_loc, node, action, node.cost + 1)
+            explored.add(current_pos)
+            if current_pos in allGold and current_pos not in node.gold_collected:
+                node.gold_collected.add(current_pos)
+                print(f"Gold found at {current_pos}")
+            if node.gold_collected == allGold:
+                return self.recoverPlan(node)
+            for action in self.getActions(node.location):
+                child = self.createChildNode(node, action)
                 if (child.location.x, child.location.y) not in explored:
                     stack.append(child)
-        return []  # No solution found
+        print("Failed to find all gold")
+        return []
 
-    @staticmethod
-    def astar(start, goal, max_x, max_y, format_move):
-        """A* to find an optimal path from start to goal."""
-        start_node = Node(start)
-        counter = 0  # A counter to break ties in the priority queue
-        # Store (f_cost, counter, node) so heapq never compares Nodes directly
-        frontier = [(0, counter, start_node)]  
-        explored = set()
-        came_from = {}
-        g_cost = {start_node: 0}
-        f_cost = {start_node: Search.heuristic(start, goal)}
-
-        while frontier:
-            # Pop the node with the lowest f cost (counter breaks ties if f is equal)
-            f, _, node = heappop(frontier)  # Ignore the counter when we pop
-            if (node.location.x, node.location.y) in explored:
+    def bfs_game(self, start, allGold):
+        """BFS for game: Find shortest path to collect all gold."""
+        start_node = Node(start, gold_collected=set())
+        queue = [start_node]
+        visited = {}  # (position, frozenset(gold_collected))
+        while queue:
+            node = queue.pop(0)
+            current_pos = (node.location.x, node.location.y)
+            new_collected = node.gold_collected.copy()
+            if current_pos in allGold and current_pos not in new_collected:
+                new_collected.add(current_pos)
+                print(f"Collected gold at {current_pos}")
+            if new_collected == allGold:
+                node.gold_collected = new_collected
+                return self.recoverPlan(node)
+            state_key = (current_pos, frozenset(new_collected))
+            if state_key in visited:
                 continue
+            visited[state_key] = True
+            for action in self.getActions(node.location):
+                child = self.createChildNode(node, action)
+                child.gold_collected = new_collected.copy()
+                child_state = ((child.location.x, child.location.y), frozenset(child.gold_collected))
+                if child_state not in visited:
+                    queue.append(child)
+        print("Failed to find all gold")
+        return []
 
-            explored.add((node.location.x, node.location.y))
+    def ucs_game(self, start, allGold):
+        """UCS for game: Find optimal cost path to collect all gold."""
+        start_node = Node(start, gold_collected=set())
+        pq = [(0, id(start_node), start_node)]  # (cost, tiebreaker, node)
+        explored = {}
+        while pq:
+            cost, _, node = heapq.heappop(pq)
+            current_pos = (node.location.x, node.location.y)
+            collected = node.gold_collected
+            state_key = (current_pos, frozenset(collected))
+            if state_key in explored and explored[state_key] <= cost:
+                continue
+            explored[state_key] = cost
+            if current_pos in allGold and current_pos not in collected:
+                collected = collected.copy()
+                collected.add(current_pos)
+                print(f"Collected gold at {current_pos}")
+            if collected == allGold:
+                node.gold_collected = collected
+                return self.recoverPlan(node)
+            for action in self.getActions(node.location):
+                child = self.createChildNode(node, action)
+                child.gold_collected = collected.copy()
+                child_cost = cost + 1
+                child_state = ((child.location.x, child.location.y), frozenset(child.gold_collected))
+                if child_state not in explored or explored[child_state] > child_cost:
+                    heapq.heappush(pq, (child_cost, id(child), child))
+        print("Failed to find all gold")
+        return []
 
-            # If we’re at the goal, build and return the plan
-            if node.location.x == goal.x and node.location.y == goal.y:
-                plan = []
-                while node in came_from:
-                    action = came_from[node][1]
-                    plan.append(format_move(action))
-                    node = came_from[node][0]
-                plan.reverse()
-                return plan
+    def greedy_game(self, start, allGold):
+        """Greedy Search for game: Minimize distance to remaining gold."""
+        def heuristic(node):
+            remaining = allGold - node.gold_collected
+            if not remaining:
+                return 0
+            hx, hy = node.location.x, node.location.y
+            return min(abs(gx - hx) + abs(gy - hy) for gx, gy in remaining)
 
-            # Check all possible moves from here
-            for action in Search.get_actions(node.location, max_x, max_y):
-                child_loc = Search.apply_action(node.location, action)
-                child = Node(child_loc, node, action, node.cost + 1)
-                tentative_g = g_cost[node] + 1  # Cost to reach this child
+        start_node = Node(start, gold_collected=set())
+        pq = [(heuristic(start_node), id(start_node), start_node)]
+        explored = {}
+        while pq:
+            h, _, node = heapq.heappop(pq)
+            current_pos = (node.location.x, node.location.y)
+            collected = node.gold_collected.copy()
+            if current_pos in allGold and current_pos not in collected:
+                collected.add(current_pos)
+                print(f"Collected gold at {current_pos}")
+            if collected == allGold:
+                node.gold_collected = collected
+                return self.recoverPlan(node)
+            state_key = (current_pos, frozenset(collected))
+            if state_key in explored and explored[state_key] <= h:
+                continue
+            explored[state_key] = h
+            for action in self.getActions(node.location):
+                child = self.createChildNode(node, action)
+                child.gold_collected = collected.copy()
+                child_h = heuristic(child)
+                child_state = ((child.location.x, child.location.y), frozenset(child.gold_collected))
+                if child_state not in explored or explored[child_state] > child_h:
+                    heapq.heappush(pq, (child_h, id(child), child))
+        print("Failed to find all gold")
+        return []
 
-                if (child.location.x, child.location.y) not in explored:
-                    if child not in g_cost or tentative_g < g_cost[child]:
-                        g_cost[child] = tentative_g
-                        f = tentative_g + Search.heuristic(child.location, goal)
-                        counter += 1  # Increment counter for uniqueness
-                        # Push (f, counter, child) so ties in f use counter
-                        heappush(frontier, (f, counter, child))
-                        came_from[child] = (node, action)
-        return []  # No solution found
+    def find_path(self, algorithm_type, start, allGold):
+        """Select and execute the specified game search algorithm."""
+        if algorithm_type == 1:
+            return self.dfs_game(start, allGold)
+        elif algorithm_type == 2:
+            return self.bfs_game(start, allGold)
+        elif algorithm_type == 3:
+            return self.ucs_game(start, allGold)
+        elif algorithm_type == 4:
+            return self.greedy_game(start, allGold)
+        else:
+            return self.dfs_game(start, allGold)  # Default to DFS
