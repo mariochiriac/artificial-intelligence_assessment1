@@ -10,13 +10,14 @@
 myId = 27995455
 
 # Dimensions in terms of the numbers of rows and columns
-worldLength = 4
-worldBreadth = 4
+worldLength = 10
+worldBreadth = 10
 
 # Features
 numberOfWumpus = 2
 numberOfPits = 3
 numberOfGold = 2
+numberofSwords = 3 # holds number of swords
 
 # Do we show graphics or not?
 headless = False

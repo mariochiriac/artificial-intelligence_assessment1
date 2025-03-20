@@ -37,12 +37,15 @@ class Dungeon():
         # Setup window and draw objects
         self.pane = GraphWin("Wumpus World", ((2*self.offset)+((self.gameWorld.maxX+1)*self.magnify)), ((2*self.offset)+((self.gameWorld.maxY+1)*self.magnify)))
         self.pane.setBackground("white")
+        self.swords = []  # Initialise swords list
+        self.wumpus = []  # Initialise wumpus list
         self.drawBoundary()
         self.drawGrid()
         self.drawLink()
         self.drawWumpus()
         self.drawPits()
         self.drawGold()
+        self.drawSword()
 
     #
     # Draw the world
@@ -83,6 +86,9 @@ class Dungeon():
 
     # We either use an image of a scary monster face, or a red circle
     def drawWumpus(self):
+        # Updated so it removes wumpus from grid if killed
+        for wumpus in self.wumpus:
+            wumpus.undraw()
         self.wumpus = []
         for i in range(len(self.gameWorld.wLoc)):
             if config.useImage:
@@ -92,6 +98,22 @@ class Dungeon():
                 self.wumpus[i].setFill('red')
         for i in range(len(self.gameWorld.wLoc)): 
             self.wumpus[i].draw(self.pane)
+            
+    # Draw sword
+    # We either use an image of a sword, or a blue circle
+    def drawSword(self):
+        # Clear existing sword graphics
+        for sword in self.swords:
+            sword.undraw()
+        self.swords = []
+        for i in range(len(self.gameWorld.sLoc)):
+            if config.useImage:
+                self.swords.append(Image(self.convert2(self.gameWorld.sLoc[i].x, self.gameWorld.sLoc[i].y), "images/sword.png"))
+            else:
+                self.swords.append(Circle(self.convert2(self.gameWorld.sLoc[i].x, self.gameWorld.sLoc[i].y), self.cSize*self.magnify))
+                self.swords[i].setFill('blue')
+        for i in range(len(self.gameWorld.sLoc)):
+            self.swords[i].draw(self.pane)
 
     #
     # Draw the objects
@@ -140,10 +162,8 @@ class Dungeon():
         self.drawGold()
         self.link.undraw()
         self.drawLink()
-        for i in range(len(self.gameWorld.wLoc)): 
-            self.wumpus[i].undraw()
         self.drawWumpus()
-
+        self.drawSword()
     def close(self):
         self.pane.close()
         

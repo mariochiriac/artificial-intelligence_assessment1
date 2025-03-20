@@ -7,8 +7,10 @@
 # Written by: Simon Parsons
 # Last Modified: 25/08/20
 
+from asyncio import new_event_loop
 import random
 import config
+from link import Link
 import utils
 from utils import Pose
 from utils import Directions
@@ -28,15 +30,18 @@ class World():
 
         # Wumpus locations within the world
         self.wLoc = []
+        self.killCount = 0
         for i in range(config.numberOfWumpus):
             newLoc = utils.pickUniquePose(self.maxX, self.maxY, self.locationList)
             self.wLoc.append(newLoc)
             self.locationList.append(newLoc)
+            print(f"Wumpus: \t[{newLoc.x}, {newLoc.y}]")
 
         # Link location
         newLoc = utils.pickUniquePose(self.maxX, self.maxY, self.locationList)
         self.lLoc = newLoc
         self.locationList.append(newLoc)
+        print(f"Link: \t[{self.lLoc.x}, {self.lLoc.y}]") # Debug Link Spawn Point
 
         # Gold location
         self.gLoc = []
@@ -44,6 +49,7 @@ class World():
             newLoc = utils.pickUniquePose(self.maxX, self.maxY, self.locationList)
             self.gLoc.append(newLoc)
             self.locationList.append(newLoc)
+            print(f"Gold: \t[{newLoc.x}, {newLoc.y}]") # Debug Gold spawn point
 
         # Pit locations
         self.pLoc = []
@@ -51,6 +57,15 @@ class World():
             newLoc = utils.pickUniquePose(self.maxX, self.maxY, self.locationList)
             self.pLoc.append(newLoc)
             self.locationList.append(newLoc)
+            print(f"Pit: \t[{newLoc.x}, {newLoc.y}]")
+
+        new_location = self.getLinkLocation()
+        self.sLoc = []
+        for i in range(config.numberofSwords):
+            newLoc = utils.pickUniquePose(self.maxX, self.maxY, self.locationList)
+            self.sLoc.append(newLoc)
+            self.locationList.append(newLoc)
+        print(f"Sword: \t[{newLoc.x}, {newLoc.y}]")
 
         # Game state
         self.status = State.PLAY
@@ -122,15 +137,24 @@ class World():
     # world information to game.py and puzzle.py
 
     # Has the game come to an end?
-    def isEnded(self):
+    def isEnded(self, link):
         dead = False
         won = False
         # Has Link met the Wumpus?
-        for i in range(len(self.wLoc)):
+        for i in range(len(self.wLoc) -1, -1, -1):
             if utils.sameLocation(self.lLoc, self.wLoc[i]):
-                print("Oops! Met the Wumpus at [", self.lLoc.x, ',', self.lLoc.y, "]")
-                dead = True
-                self.status = State.LOST
+                # Check if link has sword, and remove Wumpus if True
+                if link.sword:
+                    self.wLoc.pop(i)
+                    link.sword = False
+                    print("Oops! Met a Wumpus... Slashing him with sword... Successfully killed wumpus!")
+                    self.killCount += 1
+                    print(f"Remaining Wumpus: {len(self.wLoc)} | Kill Count: {self.killCount}")
+                else:
+                    print("Oops! Met the Wumpus at [", self.lLoc.x, ',', self.lLoc.y, "]")
+                    dead = True
+                    self.status = State.LOST
+                
                 
         # Did Link fall in a Pit?
         for i in range(len(self.pLoc)):
@@ -149,7 +173,7 @@ class World():
             return True
             
     # Implements the move chosen by Link
-    def updateLink(self, direction):
+    def updateLink(self, link, direction):
         # Set the looted flag to False
         self.looted = False
         # Implement non-determinism if appropriate
@@ -173,6 +197,17 @@ class World():
         # Did Link just loot some gold?
         match = False
         index = 0
+        
+        # Check for sword pickup
+        for i in range(len(self.sLoc)):
+            if utils.sameLocation(self.lLoc, self.sLoc[i - 1]):
+                if link.sword == True:
+                    print("What is this... a sword! But we already have our hands occupied... Skip this sword....")
+                else:
+                    print("What is this... A Sword! Picking up...")
+                    self.sLoc.pop(i - 1)
+                    link.sword = True
+
         for i in range(len(self.gLoc)):
             if utils.sameLocation(self.lLoc, self.gLoc[i]):
                 match = True
@@ -304,7 +339,8 @@ class World():
 
      # Does the given location glitter? 
     def isGlitter(self, location):
-        return self.isAdjacent(self.gLoc, location)
+        # Locations glitters if gold or swords are nearby
+        return self.isAdjacent(self.sLoc, location) or self.isAdjacent(self.gLoc, location)
                 
     # Is the location loc next to any of the locations in locList.
     #

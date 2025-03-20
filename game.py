@@ -22,6 +22,7 @@ import time
 # from the command line on its own, or invoked (from wumpus.py)
 def main(algorithmType, headless=False, iterations=1):
     total_steps = 0
+    total_nodes = 0
     wins = 0
     
     for iteration in range(iterations):
@@ -37,9 +38,10 @@ def main(algorithmType, headless=False, iterations=1):
             display.update()
             time.sleep(1)
         
-        # Run the game 
-        while not gameWorld.isEnded():
-            gameWorld.updateLink(player.makeMove())
+        # Run the game
+        # Added player argument -> used to check link details directly, such as sword    
+        while not gameWorld.isEnded(player):
+            gameWorld.updateLink(player, player.makeMove())
             gameWorld.updateWumpus()
             steps += 1  # Increment step counter
             
@@ -55,6 +57,7 @@ def main(algorithmType, headless=False, iterations=1):
             print(f"You lost after {steps} steps.")
         
         total_steps += steps
+        total_nodes += player.total_nodes
         
         # NEW: Display total nodes expanded across all replans in this game
         print(f"Total nodes expanded during search: {player.total_nodes}")
@@ -67,6 +70,7 @@ def main(algorithmType, headless=False, iterations=1):
     if iterations > 1:
         print(f"Summary: {wins}/{iterations} games won")
         print(f"Total steps across all games: {total_steps}")
+        print(f"Total nodes expanded all games: {total_nodes}")
         print(f"Average steps per game: {total_steps/iterations:.2f}")
     
     return gameWorld.status, total_steps

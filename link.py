@@ -21,6 +21,7 @@ class Link:
         self.steps_taken = 0
         self.replans = 0 
         self.total_nodes = 0  # Tracks total nodes expanded across all searches
+        self.sword = False
 
     def makeMove(self):
         # Determine the next move based on the current path or replan if necessary.
@@ -78,6 +79,11 @@ class Link:
         
         # Check for danger or sensory cues
         if self.gameWorld.isDangerous(next_loc.x, next_loc.y) or self.gameWorld.isSmelly(next_loc) or self.gameWorld.isWindy(next_loc):
+            if self.sword == True:
+                print("Next move is risky... but we have a sword! Let's risk it...")
+                self.path_index += 1
+                self.steps_taken += 1
+                return next_move
             print("Next move is risky! Finding a safe move...")
             safe_move = self.findSafeMove(current_location)
             if safe_move:
@@ -126,6 +132,7 @@ class Link:
                 
                 # Prefer moves that lead directly to gold.
                 if self.gameWorld.isGlitter(new_loc):
+                    print("Glittering...")
                     return action
                 
                 # Calculate move score based on distance to the nearest gold and turn penalties.
