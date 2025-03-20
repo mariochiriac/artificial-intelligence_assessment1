@@ -57,6 +57,7 @@ def main(algorithm_type=None, headless=False, iterations=1):
     # Output result based on game status
     if puzzle.status == utils.State.WON:
         print("You succeeded!")
+        print(f"Total nodes expanded: {puzzle.nodes}")
     else:
         print("You failed!")
 

@@ -24,7 +24,7 @@ headless = False
 # Control dynamism
 #
 # If dynamic is True, then the Wumpus will move.
-dynamic = False
+dynamic = True  
 # Control observability --- NOT YET IMPLEMENTED
 #
 # If partialVisibility is True, Link will only see part of the

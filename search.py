@@ -112,10 +112,10 @@ def dfs(problem):
     nodes_checked = 0
     while stack:
         state, path = stack.pop()
-        nodes_checked += 1  # Count each node explored
         problem.nodes_expanded += 1
+        nodes_checked += 1  # Count each node explored
         if problem.isGoalState(state):
-            print(f"DFS nodes explored: {nodes_checked}")
+            print(f"DFS nodes checked: {nodes_checked} || up-to-date nodes expanded: {problem.nodes_expanded}")
             return path
         if state not in visited:
             visited.add(state)
@@ -136,7 +136,7 @@ def bfs(problem):
         nodes_checked += 1
         problem.nodes_expanded += 1
         if problem.isGoalState(state):
-            print(f"BFS nodes checked: {nodes_checked}")
+            print(f"BFS nodes checked: {nodes_checked} || up-to-date nodes expanded: {problem.nodes_expanded}")
             return path
         if state not in visited:
             visited.add(state)
@@ -156,7 +156,7 @@ def ucs(problem):
         nodes_checked += 1
         problem.nodes_expanded += 1
         if problem.isGoalState(state):
-            print(f"UCS nodes checked: {nodes_checked}")
+            print(f"UCS nodes checked: {nodes_checked} || up-to-date nodes expanded: {problem.nodes_expanded}")
             return path
         if state not in visited or visited[state] > cost:
             visited[state] = cost
@@ -176,7 +176,7 @@ def greedy(problem):
         nodes_checked += 1
         problem.nodes_expanded += 1
         if problem.isGoalState(state):
-            print(f"Greedy nodes checked: {nodes_checked}")
+            print(f"Greedy nodes checked: {nodes_checked} || up-to-date nodes expanded: {problem.nodes_expanded}")
             return path
         if state not in visited:
             visited.add(state)
@@ -198,7 +198,7 @@ def astar(problem):
         nodes_checked += 1
         problem.nodes_expanded += 1
         if problem.isGoalState(state):
-            print(f"A* nodes checked: {nodes_checked}")
+            print(f"A* nodes checked: {nodes_checked} || up-to-date nodes expanded: {problem.nodes_expanded}")
             return path
         if state not in visited or visited[state] > g:
             visited[state] = g

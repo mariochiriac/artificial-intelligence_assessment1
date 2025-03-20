@@ -66,7 +66,7 @@ def main(algorithmType, headless=False, iterations=1):
     # Print summary after all iterations
     if iterations > 1:
         print(f"Summary: {wins}/{iterations} games won")
-        print(f"Total steps across all games: {player.total_steps}")
+        print(f"Total steps across all games: {total_steps}")
         print(f"Average steps per game: {total_steps/iterations:.2f}")
     
     return gameWorld.status, total_steps

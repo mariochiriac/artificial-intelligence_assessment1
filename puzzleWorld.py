@@ -51,7 +51,7 @@ class PuzzleWorld(World):
         self.plan = []
 
         # Count Steps
-        self.steps = 0
+        self.nodes = 0
 
 
 
@@ -71,6 +71,7 @@ class PuzzleWorld(World):
         path = search_func(problem)  # Compute path using chosen algorithm
         if path:
             self.plan.extend([[action, 0, 0] for action in path])  # Add Link’s moves
+            self.nodes += problem.nodes_expanded # adds nodes expanded to self.nodes
         else:
             print("No solution found for Link")
 
@@ -80,6 +81,7 @@ class PuzzleWorld(World):
             goal_loc = (goal.wLoc[i].x, goal.wLoc[i].y)
             problem = PuzzleSearchProblem(start, goal_loc, self.maxX, self.maxY)
             path = search_func(problem)  # Compute path for this Wumpus
+            self.nodes += problem.nodes_expanded # adds nodes expanded to self.nodes
             if path:
                 if i == 0:
                     self.plan.extend([[0, action, 0] for action in path])  # Wumpus 0 moves
@@ -91,7 +93,6 @@ class PuzzleWorld(World):
         # Log the plan result
         if self.plan:
             print(f"Plan built with algorithm {algorithm_type}: {self.plan}")
-            print(f"Total nodes expanded: {problem.nodes_expanded}")
         else:
             print("No complete plan found")
 
@@ -109,7 +110,6 @@ class PuzzleWorld(World):
     def takeStep(self, move):
         # Move Link if the first element is non-zero
         if move[0] != 0:
-            print("Moving Link")
             direction = move[0]
             if direction == Directions.NORTH and self.lLoc.y < self.maxY:
                 self.lLoc.y += 1    # Move up if within bounds
@@ -123,7 +123,6 @@ class PuzzleWorld(World):
         else:
             for i in range(1, len(self.wLoc) + 1):
                 if move[i] != 0:
-                    print(f"Moving Wumpus {i-1}")
                     direction = move[i]
                     j = i - 1           # Index of Wumpus in wLoc
                     if direction == Directions.NORTH and self.wLoc[j].y < self.maxY:
