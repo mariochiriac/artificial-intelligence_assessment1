@@ -1,15 +1,4 @@
-# link.py
-#
-# The code that defines the behaviour of Link.
-#
-# You should be able to write the code for a simple solution to the
-# game version of the Wumpus World here, getting information about the
-# game state from self.gameWorld, and using makeMove() to generate the
-# next move.
-#
-# Written by: Simon Parsons
-# Last Modified: 25/08/20
-
+# link.py - Extension for step tracking
 from search import GameSearchProblem, SEARCH_ALGORITHMS
 from utils import Pose, Directions
 
@@ -24,6 +13,10 @@ class Link:
         # Track the planned path and current index within the path
         self.path = []
         self.path_index = 0
+        
+        # Step tracking
+        self.steps_taken = 0
+        self.replans = 0
 
     def makeMove(self):
         # Determine the next move based on the current path or replan if necessary.
@@ -51,6 +44,7 @@ class Link:
             search_func = SEARCH_ALGORITHMS[self.algorithmType]
             self.path = search_func(problem)
             self.path_index = 0
+            self.replans += 1
             
             if not self.path:
                 print("No path found to any gold!")
@@ -80,6 +74,7 @@ class Link:
             
             if safe_move:
                 print(f"Safe move found: {safe_move}")
+                self.steps_taken += 1
                 return safe_move
             else:
                 print("No safe moves available. Staying put.")
@@ -87,8 +82,11 @@ class Link:
         
         # Execute the next move and increment the path index
         self.path_index += 1
+        self.steps_taken += 1
+        print(f"Steps taken: {self.steps_taken}, Replans: {self.replans}")
         return next_move
 
+    # Rest of the Link class remains unchanged
     def findSafeMove(self, current_location):
         # Find a safe move, prioritizing proximity to gold and avoiding Wumpuses.
         possible_moves = self.getActions(current_location)

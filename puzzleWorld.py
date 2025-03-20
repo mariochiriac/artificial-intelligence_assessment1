@@ -106,7 +106,7 @@ class PuzzleWorld(World):
         # Check if there’s a move to make
         if self.plan:
             move = self.plan.pop(0)     # Take first move to maintain order
-            print(move)                 # Show the move being executed
+            #print(move)                 # Show the move being executed
             self.takeStep(move)         # Apply the move
         else:
             print("Nothing to do!")     # No moves left in plan

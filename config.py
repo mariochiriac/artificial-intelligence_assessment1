@@ -10,8 +10,8 @@
 myId = 27995455
 
 # Dimensions in terms of the numbers of rows and columns
-worldLength = 10
-worldBreadth = 10
+worldLength = 6
+worldBreadth = 6
 
 # Features
 numberOfWumpus = 2

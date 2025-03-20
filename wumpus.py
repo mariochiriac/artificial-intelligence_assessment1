@@ -33,6 +33,13 @@ def main():
     headless = "-d" in sys.argv
     iterations = 1
     mode = None
+    algorithm_names = {
+        1: "Depth-First Search",
+        2: "Breadth-First Search", 
+        3: "Uniform Cost Search",
+        4: "Greedy Search",
+        5: "A* Search"
+    }
 
     for i, arg in enumerate(sys.argv):
         if arg == "-g" and i + 1 < len(sys.argv):
@@ -57,11 +64,14 @@ def main():
         print(f"Algorithm type {algorithm_type} not supported. Using DFS (1).")
         algorithm_type = 1
 
-    total_steps = 0 # holds number of steps
+    print(f"Running with {algorithm_names.get(algorithm_type, 'Unknown')} algorithm")
+    
     if mode == "game":
-       game.main(algorithm_type, headless, 1)      # returns status of game (lost / won), and number of steps taken by algorithm
+        status, total_steps = game.main(algorithm_type, headless, iterations)
+        print(f"Game completed with {total_steps} total steps across {iterations} run(s)")
     elif mode == "puzzle":
-        status, steps = puzzle.main(algorithm_type, headless, 1)    # returns status of game (lost / won), and number of steps taken by algorithm
+        status, total_steps = puzzle.main(algorithm_type, headless, iterations)
+        print(f"Puzzle completed with {total_steps} steps")
     else:
         print("Please specify -g or -p to select game or puzzle mode.")
         displayHelp()
