@@ -20,36 +20,37 @@ import time
 
 # We explicitly define the main function to allow this to both be run
 # from the command line on its own, or invoked (from wumpus.py)
-def main(algorithmType):
-    # How we set the game up. Create a world, then connect player and
-    # display to it.
-    gameWorld = World()
-    player = Link(gameWorld, algorithmType)
-    display = Dungeon(gameWorld)
+def main(algorithmType, headless=False, iterations=1):
+    for _ in range(iterations):
+        steps = 0
 
-    # Uncomment this for a printout of world state at the start
-    utils.printGameState(gameWorld)
-
-    # Show initial state
-    display.update()
-    time.sleep(1)
-    # Now run...
-    while not(gameWorld.isEnded()):
-        gameWorld.updateLink(player.makeMove())
-        gameWorld.updateWumpus()
-        # Uncomment this for a printout of world state every step
-        # utils.printGameState(gameWorld)
-        display.update()
-        time.sleep(1)
-
-    # Display message at end
-    if gameWorld.status == utils.State.WON:
-        print("You won!")
-    else:
-        print("You lost!")
-
-    # Close the display --- neded if we are going to have multiple runs.
-    display.close()
+        # Set up the game world and player
+        gameWorld = World()
+        player = Link(gameWorld, algorithmType)
+        
+        # Initialize display only if not headless
+        if not headless:
+            display = Dungeon(gameWorld)
+            display.update()
+            time.sleep(1)
+        
+        # Run the game
+        while not gameWorld.isEnded():
+            gameWorld.updateLink(player.makeMove())
+            gameWorld.updateWumpus()
+            if not headless:
+                display.update()
+                time.sleep(1)
+        
+        # Display result
+        if gameWorld.status == utils.State.WON:
+            print("You won!")
+        else:
+            print("You lost!")
+        
+        # Close display if it was created
+        if not headless:
+            display.close()
 
 # Since we explicitly named the main function
 if __name__ == "__main__":

@@ -1,5 +1,10 @@
 # puzzle.py
+#
 # Runs the Wumpus World as a puzzle.
+#
+# Standalone usage: python puzzle.py
+# Recommended usage: invoke via wumpus.py
+#
 # Written by: Simon Parsons
 # Last Modified: 17/12/24
 
@@ -10,45 +15,59 @@ import config
 import utils
 import time
 
-def main(algorithm_type=1):
-    found_chars = [0, 0, 0]
+def main(algorithm_type=None, headless=False, iterations=1):
+    # Runs the puzzle with parameters from wumpus.py
+    # - algorithm_type: Search algorithm (1-5), defaults to DFS (1) if None
+    # - headless: Disables display if True, defaults to False
+    # - iterations: Number of runs, currently supports 1
+
+    # Initialize the puzzle and goal states
     puzzle = PuzzleWorld()
     endState = PuzzleWorld()
-    if not config.headless:
-        display = Dungeon(puzzle)
-        show = Dungeon(endState)
+    
+    # Set up display if not running headless
+    display = None
+    show = None
+    if not headless:
+        display = Dungeon(puzzle)    # Display for current state
+        show = Dungeon(endState)     # Display for goal state
 
-    if not config.headless:
-        display.update()
-        show.update()
-        time.sleep(1)
+    # Optional: print initial and goal states (uncomment to enable)
+    # utils.printGameState(puzzle)
+    # utils.printGameState(endState)
 
-    print(f"Puzzle will be completed with {'A* Search' if algorithm_type == 2 else 'Depth First Search'} algorithm.")
-    puzzle.buildPlan(0, endState, algorithm_type)
+    # Update display if not headless
+    if not headless:
+        display.update()    # Show initial state
+        show.update()       # Show goal state
+        time.sleep(1)       # Pause for visibility
 
+    # Generate movement plan with specified algorithm, defaulting to DFS
+    puzzle.buildPlan(algorithm_type if algorithm_type else 1, endState)
+    steps_taken = 0 # steps counter
+
+    # Execute moves until the puzzle is solved
     while not puzzle.isSolved(endState):
-        if utils.sameLink(puzzle, endState) and found_chars[0] == 0:
-            print("Link aligned")
-            found_chars[0] = 1
-            puzzle.buildPlan(1, endState, algorithm_type)
-        for i in range(len(puzzle.wLoc)):
-            if utils.sameLocation(puzzle.wLoc[i], endState.wLoc[i]) and found_chars[i + 1] == 0:
-                print(f"Wumpus {i} aligned")
-                found_chars[i + 1] = 1
-                if i + 1 < len(puzzle.wLoc):
-                    puzzle.buildPlan(i + 2, endState, algorithm_type)
-        puzzle.makeAMove(endState)
-        if not config.headless:
-            display.update()
-            time.sleep(1)
+        puzzle.makeAMove(endState)    # Perform next move
+        steps_taken += 1
+        if not headless:
+            display.update()    # Refresh display
+            time.sleep(1)       # Delay for animation
 
+    # Output result based on game status
     if puzzle.status == utils.State.WON:
         print("You succeeded!")
     else:
         print("You failed!")
 
-    if not config.headless:
-        display.close()
+    print(f"Steps taken: {steps_taken}")
+    # Close display if it was used
+    if not headless:
+        display.close()    # Clean up for multiple runs
+        
+    return puzzle.status, steps_taken
 
+# Entry point for standalone execution
 if __name__ == "__main__":
-    main()
+    # Run with DFS and config-defined headless setting
+    main(algorithm_type=1, headless=config.headless)
