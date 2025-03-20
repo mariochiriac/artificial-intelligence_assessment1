@@ -53,14 +53,7 @@ class PuzzleWorld(World):
         # Count Steps
         self.steps = 0
 
-    # Check if the current state matches the goal state
-    def isSolved(self, goal):
-        # Use utils.sameAs to compare positions of Link and Wumpuses
-        if utils.sameAs(self, goal):
-            self.status = utils.State.WON   # Mark as won if solved
-            print("Puzzle Over!")
-            return True
-        return False
+
 
     # Build a movement plan for Link and Wumpuses to reach their goals
     def buildPlan(self, algorithm_type, goal):
@@ -98,6 +91,7 @@ class PuzzleWorld(World):
         # Log the plan result
         if self.plan:
             print(f"Plan built with algorithm {algorithm_type}: {self.plan}")
+            print(f"Total nodes expanded: {problem.nodes_expanded}")
         else:
             print("No complete plan found")
 

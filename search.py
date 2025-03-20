@@ -24,6 +24,9 @@ class SearchProblem:
     def getCostOfActions(self, actions):
         # Returns total cost as number of actions
         return len(actions)
+    
+    def __init__(self):
+        self.nodes = 0
 
 class GameSearchProblem(SearchProblem):
     # Search problem for game version: find uncollected gold
@@ -84,8 +87,8 @@ class PuzzleSearchProblem(SearchProblem):
 
     def getSuccessors(self, state):
         # Generates valid next states within bounds
-        self.nodes_expanded += 1  # Count node expansion
         successors = []
+        self.nodes_expanded += 1  # Count node expansion
         x, y = state
         for action, (dx, dy) in [
             (Directions.NORTH, (0, 1)),
@@ -110,8 +113,9 @@ def dfs(problem):
     while stack:
         state, path = stack.pop()
         nodes_checked += 1  # Count each node explored
+        problem.nodes_expanded += 1
         if problem.isGoalState(state):
-            print(f"DFS nodes checked: {nodes_checked}")
+            print(f"DFS nodes explored: {nodes_checked}")
             return path
         if state not in visited:
             visited.add(state)
@@ -121,6 +125,7 @@ def dfs(problem):
     print(f"DFS nodes checked: {nodes_checked} (no path found)")
     return None
 
+
 def bfs(problem):
     # Breadth-First Search: returns path to goal, prints nodes checked
     queue = deque([(problem.getStartState(), [])])
@@ -129,6 +134,7 @@ def bfs(problem):
     while queue:
         state, path = queue.popleft()
         nodes_checked += 1
+        problem.nodes_expanded += 1
         if problem.isGoalState(state):
             print(f"BFS nodes checked: {nodes_checked}")
             return path
@@ -148,6 +154,7 @@ def ucs(problem):
     while pq:
         cost, state, path = heapq.heappop(pq)
         nodes_checked += 1
+        problem.nodes_expanded += 1
         if problem.isGoalState(state):
             print(f"UCS nodes checked: {nodes_checked}")
             return path
@@ -167,6 +174,7 @@ def greedy(problem):
     while pq:
         _, state, path = heapq.heappop(pq)
         nodes_checked += 1
+        problem.nodes_expanded += 1
         if problem.isGoalState(state):
             print(f"Greedy nodes checked: {nodes_checked}")
             return path
@@ -188,6 +196,7 @@ def astar(problem):
     while pq:
         f, g, state, path = heapq.heappop(pq)
         nodes_checked += 1
+        problem.nodes_expanded += 1
         if problem.isGoalState(state):
             print(f"A* nodes checked: {nodes_checked}")
             return path

@@ -10,8 +10,8 @@
 myId = 27995455
 
 # Dimensions in terms of the numbers of rows and columns
-worldLength = 6
-worldBreadth = 6
+worldLength = 10
+worldBreadth = 10
 
 # Features
 numberOfWumpus = 2
@@ -24,8 +24,7 @@ headless = False
 # Control dynamism
 #
 # If dynamic is True, then the Wumpus will move.
-dynamic = True
-
+dynamic = False
 # Control observability --- NOT YET IMPLEMENTED
 #
 # If partialVisibility is True, Link will only see part of the

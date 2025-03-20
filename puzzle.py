@@ -47,7 +47,7 @@ def main(algorithm_type=None, headless=False, iterations=1):
     steps_taken = 0 # steps counter
 
     # Execute moves until the puzzle is solved
-    while not puzzle.isSolved(endState):
+    while not isSolved(puzzle, endState):
         puzzle.makeAMove(endState)    # Perform next move
         steps_taken += 1
         if not headless:
@@ -60,12 +60,21 @@ def main(algorithm_type=None, headless=False, iterations=1):
     else:
         print("You failed!")
 
-    print(f"Steps taken: {steps_taken}")
+    print(f"Moves taken: {steps_taken}")
     # Close display if it was used
     if not headless:
         display.close()    # Clean up for multiple runs
         
     return puzzle.status, steps_taken
+
+# Check if the current state matches the goal state
+def isSolved(puzzle, goal):
+    # Use utils.sameAs to compare positions of Link and Wumpuses
+    if utils.sameLink(puzzle, goal) and utils.sameWumpus(puzzle, goal):
+        puzzle.status = utils.State.WON   # Mark as won if solved
+        print("Puzzle Over!")
+        return True
+    return False
 
 # Entry point for standalone execution
 if __name__ == "__main__":

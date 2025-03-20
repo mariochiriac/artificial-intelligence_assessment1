@@ -16,7 +16,8 @@ class Link:
         
         # Step tracking
         self.steps_taken = 0
-        self.replans = 0
+        self.replans = 0 
+        self.total_nodes = 0  # total nodes expanded across all searches
 
     def makeMove(self):
         # Determine the next move based on the current path or replan if necessary.
@@ -45,6 +46,9 @@ class Link:
             self.path = search_func(problem)
             self.path_index = 0
             self.replans += 1
+            
+            # NEW: Accumulate the nodes expanded in this search
+            self.total_nodes += problem.nodes_expanded
             
             if not self.path:
                 print("No path found to any gold!")
@@ -86,9 +90,8 @@ class Link:
         print(f"Steps taken: {self.steps_taken}, Replans: {self.replans}")
         return next_move
 
-    # Rest of the Link class remains unchanged
+    # Find a safe move, prioritizing proximity to gold and avoiding Wumpuses.
     def findSafeMove(self, current_location):
-        # Find a safe move, prioritizing proximity to gold and avoiding Wumpuses.
         possible_moves = self.getActions(current_location)
         if not possible_moves:
             return None
